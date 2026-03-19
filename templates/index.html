@@ -301,7 +301,7 @@
       fd.append('tp', '');
       fd.append('orv', '');
 
-      const resp = await fetch('{{ url_for("spz.lookup") }}', { method: 'POST', body: fd });
+      const resp = await fetch('/lookup', { method: 'POST', body: fd });
       const data = await resp.json();
 
       result.style.display = 'block';

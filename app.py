@@ -1,8 +1,7 @@
-from flask import Flask, Blueprint, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify
 import requests
 
 app = Flask(__name__)
-bp = Blueprint("spz", __name__, url_prefix="/spz-lookup")
 
 API_URL = "https://api.dataovozidlech.cz/api/vehicletechnicaldata/v2"
 API_KEY = "QyJ_nyfMd-ErTTv7j-bHrOzaP4oRMXnP"
@@ -66,12 +65,12 @@ def lookup_vehicle(params: dict) -> dict:
     return {"fields": fields}
 
 
-@bp.route("/", methods=["GET"])
+@app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
 
-@bp.route("/lookup", methods=["POST"])
+@app.route("/lookup", methods=["POST"])
 def lookup():
     vin = request.form.get("vin", "").strip().upper()
     tp  = request.form.get("tp",  "").strip()
@@ -95,8 +94,6 @@ def lookup():
     result["query"] = query_label
     return jsonify(result)
 
-
-app.register_blueprint(bp)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
