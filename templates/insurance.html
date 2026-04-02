@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Povinné ručení podle SPZ</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f5f7fa;
+      color: #1a202c;
+      min-height: 100vh;
+      margin: 0;
+      padding: 60px 16px;
+    }
+
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 2rem;
+    }
+
+    p.sub {
+      text-align: center;
+      color: #718096;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e8ecf0;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    }
+
+    .error-box {
+      background: #fff5f5;
+      border: 1px solid #fed7d7;
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: #c53030;
+    }
+
+    .summary {
+      margin-bottom: 20px;
+      color: #4a5568;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #edf2f7;
+      text-align: left;
+    }
+
+    th {
+      color: #718096;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .price {
+      font-weight: 700;
+      color: #2d3748;
+    }
+
+    .back {
+      display: inline-block;
+      margin-top: 20px;
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Povinné ručení podle SPZ</h1>
+    <p class="sub">Nezávazný přehled kalkulací</p>
+
+    <div class="card">
+      {% if error %}
+        <div class="error-box">{{ error }}</div>
+      {% else %}
+        <div class="summary">
+          <strong>{{ result.vehicleSummary }}</strong><br>
+          SPZ: {{ result.input.regPlate }} · PSČ: {{ result.input.zip }} · věk: {{ result.input.age }}
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Pojišťovna</th>
+              <th>Tarif</th>
+              <th>Limity</th>
+              <th>Cena / rok</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for q in result.quotes %}
+            <tr>
+              <td>{{ q.insuranceCompany }}</td>
+              <td>{{ q.tariffName }}</td>
+              <td>{{ q.limitHealth }}/{{ q.limitProperty }} mil. Kč</td>
+              <td class="price">{{ q.priceAnnual }} Kč</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+
+      <a class="back" href="/">← Zpět na vyhledávání</a>
+    </div>
+  </div>
+</body>
+</html>

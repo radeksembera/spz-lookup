@@ -256,6 +256,49 @@
   <p>Technická data vozidla podle VIN</p>
 </header>
 
+<div class="card" style="margin-bottom: 24px;">
+  <form action="/insurance" method="get">
+    <label for="regPlateInput">SPZ</label>
+    <div class="input-row" style="margin-bottom: 12px;">
+      <input
+        type="text"
+    id="regPlateInput"
+        name="regPlate"
+        placeholder="např. 7J18422"
+        maxlength="10"
+        autocomplete="off"
+      />
+    </div>
+
+    <label for="zipInput">PSČ</label>
+    <div class="input-row" style="margin-bottom: 12px;">
+      <input
+        type="text"
+        id="zipInput"
+        name="zip"
+        placeholder="např. 17000"
+        maxlength="5"
+        autocomplete="off"
+      />
+    </div>
+
+    <label for="ageInput">Věk</label>
+    <div class="input-row">
+      <input
+        type="text"
+        id="ageInput"
+        name="age"
+        placeholder="např. 37"
+        maxlength="3"
+        autocomplete="off"
+      />
+    </div>
+
+    <button type="submit" class="btn-submit">Spočítat povinné ručení</button>
+  </form>
+</div>
+
+
 <div class="card">
   <form id="vehicleForm">
     <label for="vinInput">VIN číslo</label>
