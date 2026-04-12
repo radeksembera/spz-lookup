@@ -6,7 +6,7 @@ app = Flask(__name__)
 API_URL = "https://api.dataovozidlech.cz/api/vehicletechnicaldata/v2"
 API_KEY = "QyJ_nyfMd-ErTTv7j-bHrOzaP4oRMXnP"
 
-# Mapping of API response fields to Czech labels
+
 FIELD_MAP = [
     ("make",                      "Značka"),
     ("model",                     "Model"),
@@ -30,8 +30,6 @@ def lookup_vehicle(params: dict) -> dict:
     except requests.RequestException as e:
         return {"error": f"Chyba připojení: {e}"}
 
-    print("API response:", resp.status_code, resp.text[:500])
-
     if resp.status_code == 404:
         return {"error": "Vozidlo nebylo nalezeno."}
     if resp.status_code == 401:
@@ -45,19 +43,18 @@ def lookup_vehicle(params: dict) -> dict:
         return {"error": "API vrátilo neplatnou odpověď (není JSON)."}
 
     data = body.get("Data") or body
-    print("Data keys:", list(data.keys()) if isinstance(data, dict) else type(data))
 
     fields = []
-    for key, label in FIELD_MAP:
-        value = data.get(key)
-        if value is not None and value != "":
-            fields.append({"label": label, "value": str(value)})
-
-    # FIELD_MAP didn't match — fall back to showing all fields from Data
-    if not fields and isinstance(data, dict):
-        for key, value in data.items():
+    if isinstance(data, dict):
+        for key, label in FIELD_MAP:
+            value = data.get(key)
             if value is not None and value != "":
-                fields.append({"label": key, "value": str(value)})
+                fields.append({"label": label, "value": str(value)})
+
+        if not fields:
+            for key, value in data.items():
+                if value is not None and value != "":
+                    fields.append({"label": key, "value": str(value)})
 
     if not fields:
         return {"error": "API nevrátilo žádné použitelné údaje.", "raw": data}
@@ -65,21 +62,86 @@ def lookup_vehicle(params: dict) -> dict:
     return {"fields": fields}
 
 
+def get_insurance_calculation_mock(reg_plate: str, zip_code: str, age: int) -> dict:
+    """
+    Dočasný mock pro POC.
+    Až budeš mít reálný přístup k SURI, nahradíš tuhle funkci skutečným API voláním.
+    """
+    return {
+        "vehicleSummary": f"Výsledek pro SPZ {reg_plate}",
+        "quotes": [
+            {
+                "insuranceCompany": "UNIQA",
+                "tariffName": "100/100 mil. Kč",
+                "priceAnnual": 4195,
+                "limitHealth": 100,
+                "limitProperty": 100,
+            },
+            {
+                "insuranceCompany": "Direct",
+                "tariffName": "100/100 mil. Kč",
+                "priceAnnual": 4881,
+                "limitHealth": 100,
+                "limitProperty": 100,
+            },
+            {
+                "insuranceCompany": "Allianz",
+                "tariffName": "70/70 mil. Kč",
+                "priceAnnual": 4943,
+                "limitHealth": 70,
+                "limitProperty": 70,
+            },
+        ],
+        "input": {
+            "regPlate": reg_plate,
+            "zip": zip_code,
+            "age": age,
+        },
+    }
+
+
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
 
+@app.route("/insurance", methods=["GET"])
+def insurance():
+    reg_plate = request.args.get("regPlate", "").strip().upper()
+    zip_code = request.args.get("zip", "").strip()
+    age_raw = request.args.get("age", "").strip()
+
+    if not reg_plate or not zip_code or not age_raw:
+        return render_template(
+            "insurance.html",
+            error="Vyplňte SPZ, PSČ a věk.",
+            result=None,
+        )
+
+    try:
+        age = int(age_raw)
+    except ValueError:
+        return render_template(
+            "insurance.html",
+            error="Věk musí být číslo.",
+            result=None,
+        )
+
+    # TODO: tady později nahradit reálným voláním SURI API
+    result = get_insurance_calculation_mock(reg_plate, zip_code, age)
+
+    return render_template("insurance.html", error=None, result=result)
+
+
 @app.route("/lookup", methods=["POST"])
 def lookup():
     vin = request.form.get("vin", "").strip().upper()
-    tp  = request.form.get("tp",  "").strip()
+    tp = request.form.get("tp", "").strip()
     orv = request.form.get("orv", "").strip()
 
     if not any([vin, tp, orv]):
         return jsonify({"error": "Zadejte alespoň jedno z: VIN, TP číslo, ORV číslo."}), 400
 
-    # Use first provided value as query parameter
     if vin:
         params = {"vin": vin}
         query_label = f"VIN: {vin}"
